@@ -28,28 +28,57 @@ def get_scale(series, is_y=False, steps=20):
     return scaled_series
 
 
-def _plot_scatter(xs, ys, size, pch, colour, title, cs):
+def build_scatter(xs, ys, size, pch, colour, title, cs, xtitle, ytitle):
+    x_scale = get_scale(xs, False, size)
+    y_scale = get_scale(ys, True, size)
+
     plotted = set()
+    return_string = ""
 
     if title:
-        print(box_text(title, 2 * (len(get_scale(xs, False, size)) + 1)))
+        return_string += box_text([title], 2 * (len(x_scale) + 1)) + "\n"
 
-    print("-" * (2 * (len(get_scale(xs, False, size)) + 2)))
-    for y in get_scale(ys, True, size):
-        print("|", end=' ')
-        for x in get_scale(xs, False, size):
-            point = " "
-            for (i, (xp, yp)) in enumerate(zip(xs, ys)):
+    if ytitle: 
+        return_string += "y: "+ ytitle  + "\n"
+    return_string += "+" + "-" * (2 * (len(x_scale) + 1)) + "+"  + "\n"
+    
+    for (i, y) in enumerate(y_scale):
+        return_string += "| "
+        addHoriz = False
+        if y == 0.0:
+            addHoriz = True
+        for (j, x) in enumerate(x_scale):
+            addVert = x == 0.0
+            if addHoriz and addVert:
+                point = "o"
+            elif addHoriz:
+                point = "-"
+            elif addVert:
+                point = "|"
+            else:
+                point = " "
+            for (k, (xp, yp)) in enumerate(zip(xs, ys)):
                 if xp <= x and yp >= y and (xp, yp) not in plotted:
                     point = pch
                     plotted.add((xp, yp))
                     if cs:
-                        colour = cs[i]
-            printcolour(point + " ", True, colour)
-        print(" |")
-    print("-" * (2 * (len(get_scale(xs, False, size)) + 2)))
+                        colour = cs[k]
+            # return_string += getPointInColour(point + " ", True, colour)
+            return_string += point + " "
+            
+        if addHoriz:
+            return_string += "-|"  + "\n"
+        else:
+            return_string += " |"  + "\n"
+        
 
-def plot_scatter(f, xs, ys, size, pch, colour, title):
+
+    return_string += "+" + "-" * (2 * (len(x_scale) + 1)) + "+"  + "\n"
+    if xtitle: 
+        return_string += " " * (2 * (len(x_scale) + 2) - len("x: "+ xtitle)) + "x: "+ xtitle  + "\n"
+    return return_string
+
+def plot_scatter(f, xs, ys, size, pch, colour, title, xtitle=None, ytitle=None):
     """
     Form a complex number.
 
@@ -61,6 +90,8 @@ def plot_scatter(f, xs, ys, size, pch, colour, title):
         pch -- shape of the points (any character)
         colour -- colour of the points
         title -- title of the plot
+        xtitle -- x axis title of the plot
+        ytitle -- y axis title of the plot
     """
     cs = None
     if f:
@@ -81,7 +112,8 @@ def plot_scatter(f, xs, ys, size, pch, colour, title):
         with open(ys) as fh:
             ys = [float(str(row).strip()) for row in fh]
 
-    _plot_scatter(xs, ys, size, pch, colour, title, cs)
+    graph_string = build_scatter(xs, ys, size, pch, colour, title, cs, xtitle, ytitle)
+    print(graph_string)
     
 
 
@@ -95,6 +127,8 @@ def main():
     parser.add_option('-y', help='y coordinates', default=None, dest='y')
     parser.add_option('-s', '--size', help='y coordinates', default=20, dest='size', type='int')
     parser.add_option('-p', '--pch', help='shape of point', default="x", dest='pch')
+    parser.add_option('h', '--xtitle', help='title for x axis', default=None, dest='h')
+    parser.add_option('v', '--ytitle', help='title for y axis', default=None, dest='v')
     parser.add_option('-c', '--colour', help='colour of the plot (%s)' %
                       colour_help, default='default', dest='colour')
 
@@ -104,7 +138,7 @@ def main():
         opts.f = sys.stdin.readlines()
 
     if opts.f or (opts.x and opts.y):
-        plot_scatter(opts.f, opts.x, opts.y, opts.size, opts.pch, opts.colour, opts.t)
+        plot_scatter(opts.f, opts.x, opts.y, opts.size, opts.pch, opts.colour, opts.t, opts.h, opts.v)
     else:
         print("nothing to plot!")
 

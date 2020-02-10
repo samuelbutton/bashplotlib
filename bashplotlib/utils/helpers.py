@@ -32,6 +32,13 @@ def get_colour(colour):
     """
     return bcolours.get(colour, bcolours['ENDC'])
 
+def getPointInColour(text, sameline=False, colour=get_colour("ENDC")):
+    if sameline:
+        sep = ''
+    else:
+        sep = '\n'
+    return (get_colour(colour) + text + bcolours["ENDC"] + sep)
+
 
 def printcolour(text, sameline=False, colour=get_colour("ENDC")):
     """
@@ -76,11 +83,17 @@ def abbreviate(labels, rfill=' '):
     return abbrev
 
 
-def box_text(text, width, offset=0):
+def box_text(textList, width, offset=0):
     """
     Return text inside an ascii textbox
     """
-    box = " " * offset + "-" * (width+2) + "\n"
-    box += " " * offset + "|" + text.center(width) + "|" + "\n"
-    box += " " * offset + "-" * (width+2)
+    box = " " * offset + "+" + "-" * (width) + "+" + "\n"
+    if isiterable(textList):
+        for line in textList:
+            box += " " * offset + "|" + line.center(width) + "|" + "\n"
+    else:
+        box += " " * offset + "|" + textList.center(width) + "|" + "\n"
+        
+    box += " " * offset  + "+" + "-" * (width) + "+" 
+    
     return box

@@ -61,39 +61,39 @@ def run_demo():
 
     # plotting a histogram
     print("plotting a basic histogram")
-    print("plot_hist('%s')" % demo_file)
+    print("plot_horiz_hist('%s')" % demo_file)
     print("hist -f %s" % demo_file)
     print("cat %s | hist" % demo_file)
-    plot_hist(demo_file)
+    plot_horiz_hist(demo_file)
     print("*" * 80)
 
     # with colours
     print("histogram with colours")
-    print("plot_hist('%s', colour='blue')" % demo_file)
+    print("plot_horiz_hist('%s', colour='blue')" % demo_file)
     print("hist -f %s -c blue" % demo_file)
-    plot_hist(demo_file, colour='blue')
+    plot_horiz_hist(demo_file, colour='blue')
     print("*" * 80)
 
     # changing the shape of the point
     print("changing the shape of the bars")
-    print("plot_hist('%s', pch='.')" % demo_file)
+    print("plot_horiz_hist('%s', pch='.')" % demo_file)
     print("hist -f %s -p ." % demo_file)
-    plot_hist(demo_file, pch='.')
+    plot_horiz_hist(demo_file, pch='.')
     print("*" * 80)
 
     # changing the size of the plot
     print("changing the size of the plot")
-    print("plot_hist('%s', height=35.0, bincount=40)" % demo_file)
+    print("plot_horiz_hist('%s', width=35.0, bincount=40)" % demo_file)
     print("hist -f %s -s 35.0 -b 40" % demo_file)
-    plot_hist(demo_file, height=35.0, bincount=40)
+    plot_horiz_hist(demo_file, width=35.0, bincount=40)
 
 
-def plot_hist(f, height=20.0, bincount=None, binwidth=None, pch="o", colour="default", title="", xlab=None, showSummary=False, regular=False, xtitle=None, ytitle=None):
+def plot_horiz_hist(f, width=20.0, bincount=None, binwidth=None, pch="o", colour="default", title="", xlab=None, showSummary=False, regular=False, xtitle=None, ytitle=None):
     """
     Make a histogram
 
     Arguments:
-        height -- the height of the histogram in # of lines
+        width -- the width of the histogram in # of characters
         bincount -- number of bins in the histogram
         binwidth -- width of bins in the histogram
         pch -- shape of the bars in the plot
@@ -148,62 +148,112 @@ def plot_hist(f, height=20.0, bincount=None, binwidth=None, pch="o", colour="def
     if regular:
         start = 1
 
-    if height is None:
-        height = stop - start
-        if height > 20:
-            height = 20
+    if width is None:
+        width = stop - start
+        if width > 20:
+            width = 20
 
-    ys = list(drange(start, stop, float(stop - start) / height))
+    ys = list(drange(start, stop, float(stop - start) / width))
     ys.reverse()
 
     nlen = max(len(str(min_y)), len(str(max_y))) + 1
+
+    max_bin, min_bin = min(hist.keys()), max(hist.keys())
+    binlen = max(len(str(min_bin)), len(str(max_bin)))
 
     if title:
         print(box_text([title], max(len(hist) * 2, len(title)), nlen))
     print()
 
-    if ytitle: 
-        print(" " + "y: "+ ytitle  + "\n")
+    if xtitle: 
+        print(" " + "x: "+ xtitle   )
         # return_string += "y: "+ ytitle  + "\n"
 
+
+    start = min_val
+    stop = max_val + 1
+    num_buckets = 11
+    xs = list(drange(start, stop, float(stop - start) / num_buckets))
+
+    if xlab:
+        index = 0
+        for x in xs:
+            binlab = str(int(x))
+            binlab = " " * (binlen - len(binlab)) + binlab + "|"
+            print(binlab, end=' ')
+
+            bin_sum = 0
+            for i in hist.keys():
+                if i >= index and i <= x:
+                    bin_sum += hist[i]
+                    index = i + 1
+            
+            for y in ys:
+                if bin_sum >= y:
+                    printcolour(pch, True, colour)
+            print('')
+    
+    print(" " * (nlen + 1) + "-" * len(ys))
+
     used_labs = set()
+    # print(" " * (binlen + 1))
+    y_master_label = " " * (binlen + 1)
+    
+    power_of_ten = 1
+    while power_of_ten < max_y:
+        power_of_ten *= 10
+    
+    current_power = 10
+    while index * 10 
     for y in ys:
-        ylab = str(int(y))
+        if y > current_power * 10:
+            current_power *= 10
+        if y < current_power:
+            y_master_label += str(y) + " "
+        else:
+            y_master_label += str(y/current_power) + " "
+    while power_of_ten > 0:
+        labels = []
+
+    # print(ys)
+    for lab in labels:
+        ylab = lab
         if ylab in used_labs:
             ylab = ""
         else:
             used_labs.add(ylab)
-        ylab = " " * (nlen - len(ylab)) + ylab + "|"
+        y_master_label += " " + ylab
+    print(y_master_label)
 
-        print(ylab, end=' ')
+    #     print(ylab, end=' ')
 
-        for i in range(len(hist)):
-            if int(y) <= hist[i]:
-                printcolour(pch, True, colour)
-            else:
-                printcolour(" ", True, colour)
-        print('')
-    xs = hist.keys()
+    #     for i in range(len(hist)):
+    #         if int(y) <= hist[i]:
+    #             printcolour(pch, True, colour)
+    #         else:
+    #             printcolour(" ", True, colour)
+    #     print('')
+    # xs = hist.keys()
 
-    print(" " * (nlen + 1) + "-" * len(xs))
+    # print(" " * (nlen) + "+" + "-" * len(xs))
 
-    if xlab:
-        labels = abbreviate([str(b) for b in bins])
-        xlen = len(labels[0])
-        for i in range(0, xlen):
-            printcolour(" " * (nlen + 1), True, colour)
-            for x in range(0, len(hist)):
-                num = labels[x]
-                if x % 2 != 0:
-                    pass
-                elif i < len(num):
-                    print(num[i], end=' ')
-                else:
-                    print(" ", end=' ')
-            print('')
-    if xtitle: 
-        full_title = "x: "+ xtitle
-        print(" " * ((nlen + 1) + len(xs) - len(full_title)) + full_title  + "\n")
+    # if xlab:
+    #     labels = abbreviate([str(y) for y in ys])
+    #     xlen = len(labels[0])
+    #     for i in range(0, xlen):
+    #         printcolour(" " * (nlen + 1), True, colour)
+    #         for x in range(0, len(hist)):
+    #             num = labels[x]
+    #             if x % 2 != 0:
+    #                 pass
+    #             elif i < len(num):
+    #                 print(num[i], end=' ')
+    #             else:
+    #                 print(" ", end=' ')
+    #         print('')
+    if ytitle: 
+        full_title = "y: "+ ytitle
+        print(" " * ((nlen + 1) + len(xs) - len(full_title)) + full_title)
         # return_string += " " * (xs - len(full_title)) + full_title  + "\n"
 
     center = max(map(len, map(str, [n, min_val, mean, max_val])))
@@ -239,7 +289,7 @@ def main():
         '-b', '--bins', help='number of bins in the histogram', type='int', default=None, dest='b')
     parser.add_option('-w', '--binwidth', help='width of bins in the histogram',
                       type='float', default=None, dest='binwidth')
-    parser.add_option('-s', '--height', help='height of the histogram (in lines)',
+    parser.add_option('-s', '--width', help='width of the histogram (in lines)',
                       type='int', default=None, dest='h')
     parser.add_option('-p', '--pch', help='shape of each bar', default='o', dest='p')
     parser.add_option('-x', '--xlab', help='label bins on x-axis',
