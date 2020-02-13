@@ -195,62 +195,10 @@ def plot_horiz_hist(f, width=20.0, bincount=None, binwidth=None, pch="o", colour
     
     print(" " * (nlen + 1) + "-" * len(ys))
 
-    used_labs = set()
-    # print(" " * (binlen + 1))
-    y_master_label = " " * (binlen + 1)
-    
-    power_of_ten = 1
-    while power_of_ten < max_y:
-        power_of_ten *= 10
-    
-    current_power = 10
-    while index * 10 
-    for y in ys:
-        if y > current_power * 10:
-            current_power *= 10
-        if y < current_power:
-            y_master_label += str(y) + " "
-        else:
-            y_master_label += str(y/current_power) + " "
-    while power_of_ten > 0:
-        labels = []
+    ys.reverse()
+    print(get_y_label(ys, binlen))
 
-    # print(ys)
-    for lab in labels:
-        ylab = lab
-        if ylab in used_labs:
-            ylab = ""
-        else:
-            used_labs.add(ylab)
-        y_master_label += " " + ylab
-    print(y_master_label)
 
-    #     print(ylab, end=' ')
-
-    #     for i in range(len(hist)):
-    #         if int(y) <= hist[i]:
-    #             printcolour(pch, True, colour)
-    #         else:
-    #             printcolour(" ", True, colour)
-    #     print('')
-    # xs = hist.keys()
-
-    # print(" " * (nlen) + "+" + "-" * len(xs))
-
-    # if xlab:
-    #     labels = abbreviate([str(y) for y in ys])
-    #     xlen = len(labels[0])
-    #     for i in range(0, xlen):
-    #         printcolour(" " * (nlen + 1), True, colour)
-    #         for x in range(0, len(hist)):
-    #             num = labels[x]
-    #             if x % 2 != 0:
-    #                 pass
-    #             elif i < len(num):
-    #                 print(num[i], end=' ')
-    #             else:
-    #                 print(" ", end=' ')
-    #         print('')
     if ytitle: 
         full_title = "y: "+ ytitle
         print(" " * ((nlen + 1) + len(xs) - len(full_title)) + full_title)
@@ -266,17 +214,52 @@ def plot_horiz_hist(f, width=20.0, bincount=None, binwidth=None, pch="o", colour
         stats = ["observations: %d" % n, "min value: %f" % min_val,
         "mean : %f" % mean, "std dev : %f" % sd, "max value: %f" % max_val]
         print(box_text(stats, max(len(hist) * 2, len(title)), nlen))
-        # print("-" * (2 + center))
-        # print("|" + "Summary".center(center) + "|")
-        # print("-" * (2 + center))
-        # summary = "|" + ("observations: %d" % n).center(center) + "|\n"
-        # summary += "|" + ("min value: %f" % min_val).center(center) + "|\n"
-        # summary += "|" + ("mean : %f" % mean).center(center) + "|\n"
-        # summary += "|" + ("std dev : %f" % sd).center(center) + "|\n"
-        # summary += "|" + ("max value: %f" % max_val).center(center) + "|\n"
-        # summary += "-" * (2 + center)
-        # print(summary)
 
+def get_y_label(ys, binlen):
+    y_master_label = ""
+    ys_copy = ys[:]
+
+    used_labels = set()
+    for (i, y) in enumerate(ys_copy):
+        y = int(y)
+        if y in used_labels:
+            ys_copy[i] = 0
+        else: 
+            ys_copy[i] = int(y)
+            used_labels.add(y)
+
+    zeros = len(ys)*[0]
+    continue_build = True
+
+    
+
+    while continue_build:
+        y_master_label += " " * (binlen + 2)
+        power_of_ten = 10
+
+        for (i, y) in enumerate(ys_copy):
+            if y < 1:
+                if zeros[i] > 0:
+                    y_master_label += "0"   
+                else:
+                    y_master_label += " "
+            else:
+                while y >= power_of_ten:
+                    power_of_ten *= 10
+                    zeros[i] += 1
+                add_val = y // (power_of_ten/10)
+                y_master_label += str(int(add_val))
+                # print(ys_copy)
+                ys_copy[i] -= add_val * (power_of_ten/10)
+                zeros[i] -= 1
+        
+        continue_build = False
+        for y in ys_copy:
+            if y > 0:
+                continue_build = True
+                y_master_label += "\n"
+                break
+    return y_master_label
 
 def main():
 
